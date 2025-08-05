@@ -1,9 +1,22 @@
-#include "fsl_device_registers.h"  // pulls in MIMXRT1166_cm7.h, periph headers, core_cm7
-#include "fsl_iomuxc.h"
-#include "fsl_gpio.h"
-#include "fsl_clock.h"
+#include <stdint.h>
 
-#define LED_GPIO        GPIO1
+// 1) Clock gate register for GPIO1 (CCM CCGR5)
+#define CCM_CCGR5       (*(volatile uint32_t*)0x403F816C)
+#define CCM_CCGR5_GPIO1 (3U << 2)      // bits [3:2] enable clocks for GPIO1
+
+// 2) IOMUXC pad mux & pad control for GPIO_AD_B0_06 (LED1)
+//    see RM: SW_MUX_CTL_PAD offset = 0x8214, SW_PAD_CTL_PAD = 0x8414
+#define IOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_06 \
+                        (*(volatile uint32_t*)0x401F8214)
+#define IOMUXC_SW_PAD_CTL_PAD_GPIO_AD_B0_06 \
+                        (*(volatile uint32_t*)0x401F8414)
+#define MUX_ALT5_GPIO    5U
+#define PAD_CTL_CFG      (0x10B0U)     // PKE on, PUE pull-up, PUS=2 (100KΩ), DSE=6 (40Ω), HYS off
+
+// 3) GPIO1 registers: direction & data
+#define GPIO1_BASE      0x401B8000u
+#define GPIO1_GDIR      (*(volatile uint32_t*)(GPIO1_BASE + 0x04))
+#define GPIO1_DR        (*(volatile uint32_t*)(GPIO1_BASE + 0x10))
 #define LED_PIN         6U
 
 static void delay(volatile uint32_t d) {
@@ -11,40 +24,21 @@ static void delay(volatile uint32_t d) {
 }
 
 int main(void) {
-    // 1) Enable clocks for IOMUXC & GPIO1
-    CLOCK_EnableClock(kCLOCK_Iomuxc);
-    CLOCK_EnableClock(kCLOCK_Gpio1);
+    // Enable clock to GPIO1
+    CCM_CCGR5 |= CCM_CCGR5_GPIO1;
 
-    // 2) Pin-mux GPIO_AD_B0_06 to GPIO1_IO06 (ALT5), no input DAISY, no extra config
-    IOMUXC_SetPinMux(
-        IOMUXC_GPIO_AD_B0_06_GPIO1_IO06,  // mux register
-        5U,                               // ALT5 = GPIO1_IO06
-        0U,                               // no input select
-        0U,                               // no daisy
-        0U                                // no config here
-    );
-    // 3) Configure pad: pull-up, 40Ω drive strength, hysteresis off
-    IOMUXC_SetPinConfig(
-        IOMUXC_GPIO_AD_B0_06_GPIO1_IO06,
-        IOMUXC_SW_PAD_CTL_PAD_PKE_MASK           | // enable pull/keeper
-        IOMUXC_SW_PAD_CTL_PAD_PUE_MASK           | // pull-up
-        IOMUXC_SW_PAD_CTL_PAD_PUS(2)             | // 100 KΩ pull-up
-        IOMUXC_SW_PAD_CTL_PAD_DSE(6)             | // 40Ω drive
-        IOMUXC_SW_PAD_CTL_PAD_HYS_MASK             // hysteresis (optional)
-    );
+    // Mux pad to ALT5 (GPIO1_IO06)
+    IOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_06 = MUX_ALT5_GPIO;
+    // Set pad config (pull-up, drive strength, etc.)
+    IOMUXC_SW_PAD_CTL_PAD_GPIO_AD_B0_06 = PAD_CTL_CFG;
 
-    // 4) Init GPIO as digital output, default low
-    gpio_pin_config_t gpio_cfg = {
-        .direction  = kGPIO_DigitalOutput,
-        .outputLogic = 0U
-    };
-    GPIO_PinInit(LED_GPIO, LED_PIN, &gpio_cfg);
+    // Configure LED pin as output
+    GPIO1_GDIR |= (1U << LED_PIN);
 
-    // 5) Blink
+    // Blink forever
     for (;;) {
-        GPIO_TogglePinsOutput(LED_GPIO, 1U << LED_PIN);
+        GPIO1_DR ^= (1U << LED_PIN);
         delay(2000000);
     }
-
     return 0;
 }
