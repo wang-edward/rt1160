@@ -35,6 +35,7 @@ env = Environment(
     # Where to look for your own headers
     CPPPATH   = [
         'sdk/devices',
+        'sdk/devices/periph',
         'sdk/drivers',
     ],
 )
