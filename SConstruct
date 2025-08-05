@@ -1,4 +1,5 @@
 import os
+import subprocess
 from SCons.Script import Environment, Default, Alias
 
 # Ensure build output dir exists
@@ -6,14 +7,21 @@ BUILD_DIR = 'build'
 if not os.path.isdir(BUILD_DIR):
     os.makedirs(BUILD_DIR)
 
+SYSROOT = subprocess.check_output(
+    ['arm-none-eabi-gcc', '--print-sysroot'],
+    universal_newlines=True
+).strip()
+
 # Cross-compiler toolchain settings
 env = Environment(
+    ENV = { 'PATH': os.environ['PATH'] },
     CC        = 'arm-none-eabi-gcc',
     AS        = 'arm-none-eabi-gcc',
     AR        = 'arm-none-eabi-ar',
     OBJCOPY   = 'arm-none-eabi-objcopy',
     # C compiler flags
     CFLAGS    = [
+        f'--sysroot={SYSROOT}',
         '-mcpu=cortex-m7',
         '-mfloat-abi=hard',
         '-mfpu=fpv5-d16',
@@ -22,6 +30,7 @@ env = Environment(
     ],
     # Linker flags
     LINKFLAGS = [
+        f'--sysroot={SYSROOT}',
         '-T', 'linker/evk1160.ld',
         '-nostartfiles',
         '-Wl,--gc-sections',
@@ -30,7 +39,7 @@ env = Environment(
     # Include paths for headers
     CPPPATH   = [
         'sdk/devices',
-        'sdk/drivers'
+        'sdk/drivers',
     ],
 )
 
@@ -40,6 +49,7 @@ sources = [
     'src/main.c',
     'sdk/drivers/fsl_clock.c',
     'sdk/drivers/fsl_gpio.c',
+    'sdk/drivers/fsl_common.c',
 ]
 
 # Build the ELF and an optional binary
