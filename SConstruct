@@ -4,10 +4,12 @@ from SCons.Script import Environment, Default, Alias
 BUILD_DIR = 'build'
 os.makedirs(BUILD_DIR, exist_ok=True)
 
+gcc = '/opt/homebrew/bin/arm-none-eabi-gcc-8.3.1'
+
 env = Environment(
     ENV     = os.environ,
-    CC      = 'arm-none-eabi-gcc',
-    AS      = 'arm-none-eabi-gcc',
+    CC      = gcc,
+    AS      = gcc,
     AR      = 'arm-none-eabi-ar',
     OBJCOPY = 'arm-none-eabi-objcopy',
     CFLAGS  = [
@@ -19,7 +21,9 @@ env = Environment(
         '-T','linker/evk1160.ld','-nostartfiles','-Wl,--gc-sections','-g'
     ],
     CPPPATH = [
+        'sdk/CMSIS/Core/Include',
         'sdk/devices/MIMXRT1166',                # entire device tree
+        'sdk/devices/MIMXRT1166/periph',         # peripherals 
         'sdk/devices/MIMXRT1166/CMSIS/Include',  # core_cm7, etc.
         'sdk/devices/MIMXRT1166/gcc',            # for linker scripts if needed
         'sdk/drivers',                           # your fsl_*.h files
