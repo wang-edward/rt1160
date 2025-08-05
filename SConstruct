@@ -35,12 +35,14 @@ sources = [
     'src/startup_MIMXRT1166_cm7.S',
     'src/main.c',
     'sdk/drivers/fsl_clock.c',
+    'sdk/drivers/fsl_pmu.c',
+    'sdk/drivers/fsl_anatop_ai.c',
     'sdk/drivers/fsl_gpio.c',
     # then, for audio:
-    'sdk/drivers/fsl_sai.c',
-    'sdk/drivers/fsl_edma.c',
-    'sdk/drivers/fsl_dmamux.c',
-    'sdk/drivers/fsl_cache.c',
+    # 'sdk/drivers/fsl_sai.c',
+    # 'sdk/drivers/fsl_edma.c',
+    # 'sdk/drivers/fsl_dmamux.c',
+    # 'sdk/drivers/fsl_cache.c',
 ]
 
 elf = env.Program(target=os.path.join(BUILD_DIR,'rt1160_app.elf'),
