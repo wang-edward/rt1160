@@ -21,6 +21,7 @@ env = Environment(
         '-mcpu=cortex-m7',
         '-mfloat-abi=hard',
         '-mfpu=fpv5-d16',
+        '-DCPU_MIMXRT1166DVM6A_cm7',
         '-O0', '-g3',
         '-ffunction-sections', '-fdata-sections'
     ],
