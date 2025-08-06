@@ -294,6 +294,8 @@ __isr_vector:
     .thumb_func
     .align 2
     .globl   Reset_Handler
+    .globl   _start
+    .equ     _start, Reset_Handler
     .weak    Reset_Handler
     .type    Reset_Handler, %function
 Reset_Handler:
