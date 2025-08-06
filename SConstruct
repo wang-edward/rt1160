@@ -18,7 +18,12 @@ env = Environment(
         '-O0','-g3','-ffunction-sections','-fdata-sections',
     ],
     LINKFLAGS = [
-        '-T','linker/evk1160.ld','-nostartfiles','-Wl,--gc-sections','-g'
+        '-T','linker/evk1160.ld',
+        '-nostartfiles',       # skip crt0.o
+        '-nodefaultlibs',      # don’t link libgcc/libg
+        '-Wl,--gc-sections',
+        '-Wl,-e,Reset_Handler',# set entry to Reset_Handler not _start
+        '-g'
     ],
     CPPPATH = [
         'sdk/CMSIS/Core/Include',
@@ -43,6 +48,7 @@ sources = [
     # 'sdk/drivers/fsl_edma.c',
     # 'sdk/drivers/fsl_dmamux.c',
     # 'sdk/drivers/fsl_cache.c',
+    'sdk/devices/MIMXRT1166/system_MIMXRT1166_cm7.c',
 ]
 
 elf = env.Program(target=os.path.join(BUILD_DIR,'rt1160_app.elf'),
