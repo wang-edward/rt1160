@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "fsl_gpio.h"
 
 // 1) Clock gate register for GPIO1 (CCM CCGR5)
 #define CCM_CCGR5       (*(volatile uint32_t*)0x403F816C)

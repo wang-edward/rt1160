@@ -13,7 +13,21 @@ env = Environment(
     AR        = 'arm-none-eabi-ar',
     OBJCOPY   = 'arm-none-eabi-objcopy',
     CFLAGS    = [
-        '-mcpu=cortex-m7','-mfloat-abi=hard','-mfpu=fpv5-d16',
+        '-mcpu=cortex-m7',
+        '-mfloat-abi=hard',
+        '-mfpu=fpv5-d16',
+        '-std=c11',           # pick your C standard
+        '-Wall',              # all the “important” warnings
+        '-Wextra',            # extra pedantic warnings
+        '-Wpedantic',         # strict ISO rules
+        '-Wconversion',       # warn on implicit type conversions
+        '-Wshadow',           # warn when a local shadows another
+        '-Wpointer-arith',    # pointer arithmetic concerns
+        '-Wstrict-prototypes',# require function prototypes
+        '-Wmissing-prototypes',
+        '-Wold-style-definition',
+        '-Werror',            # treat *all* warnings as errors
+
         '-DCPU_MIMXRT1166DVM6A_cm7',
         '-O0','-g3','-ffunction-sections','-fdata-sections',
     ],
@@ -37,7 +51,7 @@ env = Environment(
 
 # List your source files
 srcs = [
-    'src/startup_MIMXRT1166_cm7.S',
+    'src/startup_cm7.S',
     'src/main.c',
     'sdk/drivers/fsl_clock.c',
     'sdk/drivers/fsl_pmu.c',
