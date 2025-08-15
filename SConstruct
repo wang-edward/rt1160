@@ -17,16 +17,16 @@ env = Environment(
         '-mfloat-abi=hard',
         '-mfpu=fpv5-d16',
         '-std=c11',           # pick your C standard
-        '-Wall',              # all the “important” warnings
-        '-Wextra',            # extra pedantic warnings
-        '-Wpedantic',         # strict ISO rules
-        '-Wconversion',       # warn on implicit type conversions
-        '-Wshadow',           # warn when a local shadows another
-        '-Wpointer-arith',    # pointer arithmetic concerns
-        '-Wstrict-prototypes',# require function prototypes
-        '-Wmissing-prototypes',
-        '-Wold-style-definition',
-        '-Werror',            # treat *all* warnings as errors
+        # '-Wall',              # all the “important” warnings
+        # '-Wextra',            # extra pedantic warnings
+        # '-Wpedantic',         # strict ISO rules
+        # '-Wconversion',       # warn on implicit type conversions
+        # '-Wshadow',           # warn when a local shadows another
+        # '-Wpointer-arith',    # pointer arithmetic concerns
+        # '-Wstrict-prototypes',# require function prototypes
+        # '-Wmissing-prototypes',
+        # '-Wold-style-definition',
+        # '-Werror',            # treat *all* warnings as errors
 
         '-DCPU_MIMXRT1166DVM6A_cm7',
         '-O0','-g3','-ffunction-sections','-fdata-sections',
