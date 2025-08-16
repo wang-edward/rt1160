@@ -1,45 +1,76 @@
-#include <stdint.h>
-#include "fsl_gpio.h"
+/*
+ * Copyright 2019 NXP
+ * All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 
-// 1) Clock gate register for GPIO1 (CCM CCGR5)
-#define CCM_CCGR5       (*(volatile uint32_t*)0x403F816C)
-#define CCM_CCGR5_GPIO1 (3U << 2)      // bits [3:2] enable clocks for GPIO1
+#include "board.h"
+#include "app.h"
 
-// 2) IOMUXC pad mux & pad control for GPIO_AD_B0_06 (LED1)
-//    see RM: SW_MUX_CTL_PAD offset = 0x8214, SW_PAD_CTL_PAD = 0x8414
-#define IOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_06 \
-                        (*(volatile uint32_t*)0x401F8214)
-#define IOMUXC_SW_PAD_CTL_PAD_GPIO_AD_B0_06 \
-                        (*(volatile uint32_t*)0x401F8414)
-#define MUX_ALT5_GPIO    5U
-#define PAD_CTL_CFG      (0x10B0U)     // PKE on, PUE pull-up, PUS=2 (100KΩ), DSE=6 (40Ω), HYS off
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
 
-// 3) GPIO1 registers: direction & data
-#define GPIO1_BASE      0x401B8000u
-#define GPIO1_GDIR      (*(volatile uint32_t*)(GPIO1_BASE + 0x04))
-#define GPIO1_DR        (*(volatile uint32_t*)(GPIO1_BASE + 0x10))
-#define LED_PIN         6U
+/*******************************************************************************
+ * Prototypes
+ ******************************************************************************/
 
-static void delay(volatile uint32_t d) {
-    while (d--) { __asm__("nop"); }
+/*******************************************************************************
+ * Variables
+ ******************************************************************************/
+volatile uint32_t g_systickCounter;
+/* The PIN status */
+volatile bool g_pinSet = false;
+
+/*******************************************************************************
+ * Code
+ ******************************************************************************/
+void SysTick_Handler(void)
+{
+    if (g_systickCounter != 0U)
+    {
+        g_systickCounter--;
+    }
 }
 
-int main(void) {
-    // Enable clock to GPIO1
-    CCM_CCGR5 |= CCM_CCGR5_GPIO1;
-
-    // Mux pad to ALT5 (GPIO1_IO06)
-    IOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_06 = MUX_ALT5_GPIO;
-    // Set pad config (pull-up, drive strength, etc.)
-    IOMUXC_SW_PAD_CTL_PAD_GPIO_AD_B0_06 = PAD_CTL_CFG;
-
-    // Configure LED pin as output
-    GPIO1_GDIR |= (1U << LED_PIN);
-
-    // Blink forever
-    for (;;) {
-        GPIO1_DR ^= (1U << LED_PIN);
-        delay(2000000);
+void SysTick_DelayTicks(uint32_t n)
+{
+    g_systickCounter = n;
+    while (g_systickCounter != 0U)
+    {
     }
-    return 0;
+}
+
+/*!
+ * @brief Main function
+ */
+int main(void)
+{
+    /* Board pin init */
+    BOARD_InitHardware();
+
+    /* Set systick reload value to generate 1ms interrupt */
+    if (SysTick_Config(SystemCoreClock / 1000U))
+    {
+        while (1)
+        {
+        }
+    }
+
+    while (1)
+    {
+        /* Delay 1000 ms */
+        SysTick_DelayTicks(1000U);
+        if (g_pinSet)
+        {
+            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 0U);
+            g_pinSet = false;
+        }
+        else
+        {
+            GPIO_PinWrite(EXAMPLE_LED_GPIO, EXAMPLE_LED_GPIO_PIN, 1U);
+            g_pinSet = true;
+        }
+    }
 }
